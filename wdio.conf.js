@@ -27,7 +27,8 @@ exports.config = {
   
     baseUrl: 'https://www.sbs.com.au',
    
-    waitforTimeout: 10000,
+    waitforTimeout: 60000,
+    waitforInterval: 3000,
     connectionRetryTimeout: 120000,
     
     connectionRetryCount: 3,
@@ -36,8 +37,9 @@ exports.config = {
         'spec',
         ['allure', {
           outputDir: 'report/allure-results',
-          disableWebdriverStepsReporting: true,
+          disableWebdriverStepsReporting: false,
           disableWebdriverScreenshotsReporting: false,
+          addConsoleLogs : true
         }]
       ],
     mochaOpts: {
@@ -67,10 +69,10 @@ exports.config = {
                 console.log('>> Capture Screenshot Failed!');
             }
         }
-    },
-    onComplete: function(exitCode, config, capabilities, results) {
-        const mergeResults = require('wdio-json-reporter/mergeResults');
-        mergeResults('./report/json', 'wdio-*', 'testResults.json')
-    },
+    }
+    // onComplete: function(exitCode, config, capabilities, results) {
+    //     const mergeResults = require('wdio-json-reporter/mergeResults');
+    //     mergeResults('report/allure-results', '', 'testResults.json')
+    // },
    
 }

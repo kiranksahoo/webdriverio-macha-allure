@@ -1,69 +1,111 @@
-//const LoginPage = require('../pages/.page');
-//const SecurePage = require('../pages/secure.page');
-//var assert = require('assert');
-
 import Homepage from '../pages/homepage';
-//import { waitForTextChange } from '../utilities/helper';
-//import resources from '../resources';
-//import allureReporter from '@wdio/allure-reporter';
+import * as Constants from '../constants/frameworkconstants';
+import allureReporter from '@wdio/allure-reporter'
+const superTest = require('supertest');
+
+
+const reqresUrl = 'https://www.sbs.com.au';
+const reqres = superTest(reqresUrl);
 
 describe("E2E test suite", () => {
 
- 
-
     it("Test 1 - Verify page open and title", async () => {
-      //await browser.setWindowSize(800,800)
-      //await browser.url("https://www.sbs.com.au/language/chinese/zh-hans/podcast-episode/cultural-conflict-meet-someone-causing-you-trouble/l9pzenqfq")
+      allureReporter.addStep('Verify page open and title')
       Homepage.open();
-      expect(browser).toHaveUrl("https://www.sbs.com.au/language/chinese/zh-hans/podcast-episode/cultural-conflict-meet-someone-causing-you-trouble/l9pzenqfq")
-      expect(browser).toHaveTitle('【文化苦丁茶】人生的林子里，你有大概率会遇到“鸟人” | SBS Chinese')
-      
+      expect(browser).toHaveUrl(Constants.urlval)
+      expect(browser).toHaveTitle(Constants.urltitle)
 
     });
 
-    it("Test 2 - Verify audio control", async () => {
+    it("Test 2 - Verify the titile of Audio track", async () => {
+      allureReporter.addStep('Verify the titile of Audio track')
+      const audioTitle = Homepage.audioTrackName;
+      expect(audioTitle).toHaveText(Constants.audioTitle)
+
+    });
+
+    it("Test 3 - Verify the Audio player is launched on clicking audio play btn", async () => {
+      allureReporter.addStep('Verify the Audio player is launched on clicking audio play btn')
       await Homepage.audioBtn.click()
-      //verify audio player opens
-      //await (browser.$("[data-testid=mini-player]")).waitForClickable
+      //Verify that audio player close button is displayed at the bottom of page
+      expect(Homepage.audioPlayerCloseBtn).toBePresent()
+
+    });
+
+    
+    it("Test 4 - Verify the Audio player Play Pause functions", async () => {
+      allureReporter.addStep('Verify the Audio player Play Pause functions')
+      //verifyt that audio player has PAUSE button enabled first
       const formLocator = Homepage.playerBtn;
-      await Homepage.forwardplayBtn.click()
-      //const timerval=Homepage.getTimerValue().gett
-      expect(Homepage.getTimerValue).toHaveValue('2')
-      await Homepage.rewindBtn.click()
-      //const timerval2=$('body > div.MuiModal-root.MuiDrawer-root.MuiDrawer-modal.css-yqivbj-MuiModal-root-MuiDrawer-root > div.MuiPaper-root.MuiPaper-elevation.MuiPaper-elevation16.MuiDrawer-paper.MuiDrawer-paperAnchorBottom.css-105yjo-MuiPaper-root-MuiDrawer-paper > div > div.draw-small.css-vjrmxc-upper-section > div > div.MuiBox-root.css-l6ct9h > div.MuiBox-root.css-by529t > span > span.MuiSlider-thumbColorPrimary.MuiSlider-thumbSizeMedium.MuiSlider-thumb.css-13tm8ev-MuiSlider-thumb > input[type=range]')
-      expect(Homepage.getTimerValue).toHaveValue('1')
-      //Verify play and pause button working
       expect(formLocator).toHaveText('PAUSE')
       await Homepage.playControl.click()
+       //verifyt that audio player has PLAY button enabled after clicking pause
       expect(formLocator).toHaveText('PLAY')
-      await Homepage.playControl.click()
-      const timerval=Homepage.playtimeCount
 
-      expect(timerval).not.toHaveText('00:00')   
-      
+    });
+    
+    it("Test 5 - Verify audio control for Forward and Rewind", async () => {
+      allureReporter.addStep('Verify audio control for Forward and Rewind')
+      await browser.pause(3000)
+      await Homepage.rewindBtn.click()
+      const timerval=Homepage.playtimeCount
+      console.log('Timer value is:',await timerval.getText())
+      await Homepage.forwardplayBtn.click()
+      await browser.pause(3000)
+      console.log('Timer value is after forward :',await timerval.getText())
+      expect(timerval.getText()).toHaveValue('00:30')
+      await Homepage.rewindBtn.click()
+      await browser.pause(3000)
+      console.log('Timer value is after rewind :',await timerval.getText())
+      expect(timerval).not.toHaveText('00:15')   
+
+    });
+    it("Test 6 - Verify the Audio player Mute Unmute functions", async () => {
+      allureReporter.addStep('Verify the Audio player Mute Unmute functions')
       await Homepage.volumeControl.click()
       const volslider=Homepage.volSlider
+      expect(volslider).toBeDisplayed() 
+      const volinput = await Homepage.volSliderInput
+      await volinput.click()
+      //send shift + home keys to mute the volume 
+      browser.keys(['Shift','Home'])
+      await browser.pause(3000)
+      const muteEnabled=await browser.$('#path-1')
+      //Verify Mute button is enabled
+      expect(muteEnabled).toBeDisplayed()
       
-      await expect(volslider).toBeDisplayed() 
-      //utilities.takeScreenshot('audiocontrol');
 
     });
 
-    it("Test 3 - Verify language selection", async () => {
-      
-      await Homepage.langSelection.click()
-      const multilang=$('aria/Chinese (Traditional) - 中文 (繁體中文)')
-      await expect(multilang).toBeDisplayed() 
 
-      //utilities.takeScreenshot('language');
+
+    it("Test 7 - Verify language selection", async () => {
+      allureReporter.addStep('Verify language selection')
+      await browser.$('span=Stories in English').click
+      await Homepage.langSelection.click()
+      const multilang=Homepage.multiLangOption
+      await expect(multilang).toBeDisplayed() 
 
     });
 
      
-    it("Test 4 - Verify api call", async () => {
-      browser.call('https://www.sbs.com.au')
-      browser.setupInterceptor();
-      browser.expectRequest('GET', '/guide/ajax_radio_program_catchup_data/language/mandarin/location/NSW/sublocation/Sydney', 200); 
+    it("Test 8 - Verify api call and mp3 files in response", async () => {
+      allureReporter.addStep('Verify api call and mp3 files in response')
+      const response = await reqres
+            .get(Constants.apiendpoint)
+            .then(response => {
+                return response;
+            });
+      console.log('Status Code is: ' + response.status);
+      expect(response.status).toEqual(200)
+      expect(response).toHaveText('https://media.sbs.com.au/ondemand/audio/Wednesday_ONDemand_SBS_RADIO1_07_00.mp3?mtime=1667341214')
+      expect(response).toHaveText('https://media.sbs.com.au/ondemand/audio/Tuesday_ONDemand_SBS_RADIO1_07_00.mp3?mtime=1667254910')
+      expect(response).toHaveText('https://media.sbs.com.au/ondemand/audio/Monday_ONDemand_SBS_RADIO1_07_00.mp3?mtime=1667168412')
+      expect(response).toHaveText('https://media.sbs.com.au/ondemand/audio/Sunday_ONDemand_SBS_RADIO1_07_00.mp3?mtime=1667082305')
+      expect(response).toHaveText('https://media.sbs.com.au/ondemand/audio/Saturday_ONDemand_SBS_RADIO1_07_00.mp3?mtime=1666995649')
+      expect(response).toHaveText('https://media.sbs.com.au/ondemand/audio/Thursday_ONDemand_SBS_RADIO1_07_00.mp3?mtime=1666823326')
+      expect(response).toHaveText('https://media.sbs.com.au/ondemand/audio/Wednesday_ONDemand_SBS_RADIO1_07_00.mp3?mtime=1667341214')
+
    });
 
 
