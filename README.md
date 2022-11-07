@@ -1,3 +1,6 @@
+This is a sample framework project based in WebdriverIO framework.
+It has basic UI and API tests. The UI tests an audio player funtions. 
+
 ****USAGE********
 1. Install all npm packages
     "npm install"
