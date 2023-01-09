@@ -1,8 +1,9 @@
 name: Node Continuous Integration
 
-on:
-  pull_request:
-    branches: [ master ]
+on: 
+  push:
+    # only trigger on branches, not on tags
+    branches: '**'
 jobs:
   test_pull_request:
     runs-on: self-hosted
